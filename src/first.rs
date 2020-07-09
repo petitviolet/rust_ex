@@ -1,6 +1,6 @@
 use crate::SortOrder;
 
-pub fn sort<'a, T: Clone + PartialOrd>(x: &[T], order: &SortOrder) -> Result<Vec<T>, String> {
+pub fn sort<T: Clone + PartialOrd>(x: &[T], order: &SortOrder) -> Result<Vec<T>, String> {
   if x.len().is_power_of_two() {
     let mut vec = x.to_vec();
     _sort(&mut vec, &order);
