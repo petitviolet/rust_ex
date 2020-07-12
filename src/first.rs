@@ -69,6 +69,7 @@ mod tests {
   use super::sort;
   use super::sort_by;
   use super::SortOrder;
+  use crate::utils::{is_sorted, new_u32_vec};
 
   fn assert_sort_result<T: std::fmt::Debug + PartialEq>(result: Result<Vec<T>, String>, expected: Vec<T>) {
     match result {
@@ -118,5 +119,23 @@ mod tests {
     let dave = User::new("dave", 50);
     let users = vec![&alice, &dave, &charlie, &bob];
     assert_sort_result(sort_by(&users, &|u1, u2| u1.age.cmp(&u2.age)), vec![&alice, &charlie, &bob, &dave]);
+  }
+
+  #[test]
+  fn sort_huge_number_arrays() {
+    let arr = new_u32_vec(65536);
+    match sort(&arr, &SortOrder::Ascending) {
+      Ok(res) =>
+        assert!(is_sorted(&res, &SortOrder::Ascending)),
+      Err(err) =>
+        assert!(false, "should not get Err({})", err),
+    }
+
+    match sort(&arr, &SortOrder::Descending) {
+      Ok(res) =>
+        assert!(is_sorted(&res, &SortOrder::Descending)),
+      Err(err) =>
+        assert!(false, "should not get Err({})", err),
+    }
   }
 }
