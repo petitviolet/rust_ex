@@ -1,12 +1,19 @@
 use crate::SortOrder;
 use std::cmp::Ordering;
+use futures::{ join, future };
+use std::future::Future;
+use std::pin::Pin;
 
 pub fn sort<T: Clone + Ord>(x: &[T], order: &SortOrder) -> Result<Vec<T>, String> {
   if x.len().is_power_of_two() {
     let mut vec = x.to_vec();
     match *order {
-      SortOrder::Ascending => _sort(&mut vec, false, &|a, b| a.cmp(b)),
-      SortOrder::Descending => _sort(&mut vec, true, &|a, b| a.cmp(b)),
+      SortOrder::Ascending => {
+        _sort(&mut vec, false, &|a, b| a.cmp(b));
+      },
+      SortOrder::Descending => {
+        _sort(&mut vec, true, &|a, b| a.cmp(b));
+      }
     };
     return Ok(vec);
   } else {
@@ -25,26 +32,34 @@ pub fn sort_by<T: Clone, F>(x: &[T], comparator: &F) -> Result<Vec<T>, String>
   }
 }
 
-fn _sort<T, F>(x: &mut [T], reverse: bool, comparator: &F) -> ()
+use futures::future::{BoxFuture};
+
+async fn _sort<T, F>(x: &mut [T], reverse: bool, comparator: &F) -> BoxFuture<'static, ()>
   where F: Fn(&T, &T) -> Ordering
 {
   if x.len() > 1 {
     let mid_point = mid_point(x);
-    _sort(&mut x[..mid_point], false, comparator);
-    _sort(&mut x[mid_point..], true, comparator);
-    sub_sort(x, reverse, comparator);
+    let (former, latter) = x.split_at_mut(mid_point);
+    let t1 = _sort(former, false, comparator);
+    let t2 = _sort(latter, true, comparator);
+    futures::join!(t1, t2);
+    sub_sort(x, reverse, comparator).await;
   }
+  return Box::pin(async {()});
 }
 
-fn sub_sort<T, F>(x: &mut [T], reverse: bool, comparator: &F)
+async fn sub_sort<T, F>(x: &mut [T], reverse: bool, comparator: &F)  -> BoxFuture<'static, ()>
   where F: Fn(&T, &T) -> Ordering
 {
   if x.len() > 1 {
     compare_and_swap(x, reverse, comparator);
     let mid_point = mid_point(x);
-    sub_sort(&mut x[..mid_point], reverse, comparator);
-    sub_sort(&mut x[mid_point..], reverse, comparator);
+    let (former, latter) = x.split_at_mut(mid_point);
+    let t1 = async { sub_sort(former, reverse, comparator) };
+    let t2 = async { sub_sort(latter, reverse, comparator) };
+    futures::join!(t1, t2);
   }
+  return Box::pin(async {()});
 }
 
 fn compare_and_swap<T, F>(x: &mut [T], reverse: bool, comparator: &F)
