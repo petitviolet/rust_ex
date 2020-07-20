@@ -14,6 +14,7 @@ fn main() {
   adt::do_mile_convert();
 
   closure::f();
+  ownership::f();
 }
 
 use rand::Rng;
@@ -227,5 +228,36 @@ mod closure {
     println!("add_n2(2): {}", add_n2(2));
     n = 20; // `n` belongs to `add_n`
     println!("add_n2(2): {}", add_n2(2));
+  }
+}
+
+mod ownership {
+  #[derive(Debug, Copy, Clone)] struct Parent(isize, Child);
+  #[derive(Debug, Copy, Clone)] struct Child(isize);
+  // impl Drop for Parent { fn drop(&mut self) { println!("Drop: {:?}", self)} }
+  // impl Drop for Child { fn drop(&mut self) { println!("Drop: {:?}", self)} }
+  // impl Copy for Parent {}
+  // impl Copy for Child {}
+
+  pub fn f() -> () {
+    {
+      let p1 = Parent(1, Child(2));
+      println!("p1: {:?}", p1);
+    }
+    let c2 = Child(3);
+    {
+      let c2_ = c2; // copy, not moved
+      let p2 = Parent(4, c2_);
+      println!("p2: {:?}", p2);
+    }
+
+    println!("{:?}", c2); // if Parent and Child don't have Copy trait, this will be an error by `c2` is borrowd by the above block
+    let p3 = Parent(5, Child(6));
+    println!("p3: {:?}", p3);
+    { 
+      let p4 = Parent(7, p3.1);
+      println!("p4: {:?}", p4);
+    }
+    println!("p3: {:?}", p3); // if Parent and Child don't have Copy trait, this will be an error by `p3` is partially borrowed by `p4`
   }
 }
