@@ -1,3 +1,5 @@
+mod myvec;
+
 fn main() {
   println!("{}", bang("Hello, world"));
   pointer();
@@ -21,6 +23,8 @@ fn main() {
   closure::f();
   ownership::copy::f();
   ownership::mv::f();
+
+  myvec::play_myvec();
 }
 
 use rand::Rng;
