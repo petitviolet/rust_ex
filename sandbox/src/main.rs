@@ -20,6 +20,7 @@ fn main() {
 
   closure::f();
   ownership::copy::f();
+  ownership::mv::f();
 }
 
 use rand::Rng;
@@ -259,6 +260,7 @@ mod ownership {
     // impl Copy for Child {}
 
     pub fn f() -> () {
+      println!("ownership::copy");
       {
         let p1 = Parent(1, Child(2));
         println!("p1: {:?}", p1);
@@ -278,6 +280,59 @@ mod ownership {
         println!("p4: {:?}", p4);
       }
       println!("p3: {:?}", p3); // if Parent and Child don't have Copy trait, this will be an error by `p3` is partially borrowed by `p4`
+    }
+  }
+  pub mod mv {
+    #[derive(Debug)]
+    struct Parent(isize, Child);
+    #[derive(Debug)]
+    struct Child(isize);
+    impl Drop for Parent {
+      fn drop(&mut self) {
+        println!("Drop: {:?}", self)
+      }
+    }
+    impl Drop for Child {
+      fn drop(&mut self) {
+        println!("Drop: {:?}", self)
+      }
+    }
+
+    pub fn f() -> () {
+      println!("ownership::mv");
+      {
+        let p1 = Parent(1, Child(2));
+        println!("p1: {:?}", p1);
+      }
+      let c2 = Child(3);
+      {
+        let c2_ = c2; // copy, not moved
+        let p2 = Parent(4, c2_);
+        println!("p2: {:?}", p2);
+      }
+
+      // println!("{:?}", c2); // `c2` is borrowd by the above block
+      let p3 = Parent(5, Child(6));
+      println!("p3: {:?}", p3);
+      {
+        // let p4 = Parent(7, p3.1); // cannot move out of here. need Copy trait
+        // println!("p4: {:?}", p4);
+      }
+
+      copy_g(p3);
+      // println!("p3: {:?}", p3); // value borrwoed here after move to `copy_g`
+      let p4 = Parent(7, Child(8));
+      println!("p4: {:?}", p4);
+      ref_g(&p4);
+      println!("p4: {:?}", p4);
+    }
+
+    fn copy_g(p: Parent) -> () {
+      println!("copy_g(p): {:?}", p);
+    }
+
+    fn ref_g(p: &Parent) -> () {
+      println!("ref_g(p): {:?}", p);
     }
   }
 }
