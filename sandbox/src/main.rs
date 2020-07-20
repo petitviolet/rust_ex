@@ -12,6 +12,8 @@ fn main() {
   use crate::adt::Distance;
   println!("{:?}", adt::Mile::new(100).convert() );
   adt::do_mile_convert();
+
+  closure::f();
 }
 
 use rand::Rng;
@@ -208,5 +210,22 @@ mod adt {
   }
   pub fn do_mile_convert() -> () {
     println!("{:?}", Mile { value: 100}.convert());
+  }
+}
+
+
+mod closure {
+  pub fn f() -> () {
+    let adder = |a, b| { a + b };
+    println!("adder(1, 2): {}", adder(1, 2));
+    let mut n = 1; 
+    let add_n = |a| { n + a };
+    println!("add_n(2): {}", add_n(2));
+    // n = 2; // `n` is borrowed by `add_n`
+    let mut n = 2; // shadow-ing
+    let add_n2 = move |a| { n + a }; // `move` keyword
+    println!("add_n2(2): {}", add_n2(2));
+    n = 20; // `n` belongs to `add_n`
+    println!("add_n2(2): {}", add_n2(2));
   }
 }
