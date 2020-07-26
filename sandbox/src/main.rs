@@ -26,6 +26,7 @@ fn main() {
 
   myvec::play_myvec();
   rc::f();
+  refcell::f();
 }
 
 use rand::Rng;
@@ -444,5 +445,39 @@ mod rc {
         println!("cannot upgrade. rc3: {:?}, upgrade(): {:?}", rc3, rc3.upgrade());
       }
     }
+  }
+}
+
+mod refcell {
+  use std::cell::RefCell;
+  use std::collections::HashSet;
+
+  thread_local!(
+    static NAMES: RefCell<HashSet<String>> = {
+      let names = ["alice".to_string(), "bob".to_string()].iter().cloned().collect();
+      RefCell::new(names)
+    }
+  );
+
+  pub fn f() -> () {
+    NAMES.with(|names| {
+      println!("names: {:?}", names);
+      names.borrow_mut().insert("charlie".to_string());
+      println!("names: {:?}", names);
+    });
+
+    std::thread::spawn(|| {
+      NAMES.with(|names| { 
+        println!("[spawned thread]names: {:?}", names);
+        names.borrow_mut().insert("dave".to_string());
+        println!("[spawned thread]names: {:?}", names);
+      });
+    }).join().expect("!!!");
+
+    NAMES.with(|names| {
+      println!("names: {:?}", names);
+      names.borrow_mut().insert("ellen".to_string());
+      println!("names: {:?}", names);
+    });
   }
 }
