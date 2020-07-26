@@ -27,6 +27,7 @@ fn main() {
     myvec::play_myvec();
     rc::f();
     refcell::f();
+    arc::f();
 }
 
 use rand::Rng;
@@ -482,4 +483,51 @@ mod refcell {
             println!("names: {:?}", names);
         });
     }
+}
+
+mod arc {
+  use std::collections::HashSet;
+  use std::error::Error;
+  use std::sync::{Arc, RwLock};
+
+  pub fn f() -> Result<(), Box<dyn Error>> {
+    type T = Arc<RwLock<HashSet<String>>>;
+    let names: T = Arc::new(RwLock::new(
+      ["alice".to_string(), "bob".to_string()].iter().cloned().collect::<HashSet<String>>()
+    ));
+    let start = std::time::Instant::now();
+    let elapsed = move || { return std::time::Instant::now().duration_since(start); };
+
+    let read = || -> () {
+      let cloned1 = Arc::clone(&names);
+      std::thread::spawn(move || {
+        let read_names = cloned1.read().map_err(|err| err.to_string());
+        println!("[{:?}]read_names: {:?}", elapsed(), read_names);
+        std::thread::sleep_ms(30);
+        println!("[{:?}]finish sleep", elapsed());
+      });//.join().expect("fail!");
+    };
+
+    let write = || -> () {
+      let cloned2 = Arc::clone(&names);
+      std::thread::spawn(move || {
+        println!("[{:?}]write try to get lock.", elapsed());
+        let write_names = cloned2.write().map_err(|err| err.to_string());
+        println!("[{:?}]write got lock.", elapsed());
+        write_names.map(|mut wn| {
+          println!("[{:?}]write_names: {:?}", elapsed(), wn);
+          wn.insert(format!("now-{:?}", elapsed()));
+        }).expect("!!!");
+      });//.join().expect("fail!");
+    };
+
+    read();
+    write();
+    read();
+    write();
+    read();
+
+    std::thread::sleep_ms(100);
+    Ok(())
+  }
 }
