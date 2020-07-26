@@ -25,6 +25,7 @@ fn main() {
   ownership::mv::f();
 
   myvec::play_myvec();
+  rc::f();
 }
 
 use rand::Rng;
@@ -337,6 +338,111 @@ mod ownership {
 
     fn ref_g(p: &Parent) -> () {
       println!("ref_g(p): {:?}", p);
+    }
+  }
+}
+
+mod rc {
+  use std::rc::Rc;
+  #[derive(Debug)]
+  struct Person {
+    name: String,
+    age: i32,
+  }
+  pub fn f() -> () {
+    let mut rc1 = Rc::new(Person {
+      name: "alice".to_string(),
+      age: 30,
+    });
+    println!(
+      "strong_count: {count}, rc1: {rc1:?}",
+      rc1 = rc1,
+      count = Rc::strong_count(&rc1)
+    );
+    {
+      let rc2 = Rc::clone(&rc1);
+      println!(
+        "strong_count: {count}, rc1: {rc1:?}, rc2: {rc2:?}",
+        rc1 = rc1,
+        rc2 = rc2,
+        count = Rc::strong_count(&rc1)
+      );
+
+      {
+        if let Some(person) = Rc::get_mut(&mut rc1) {
+          person.age += 1;
+          println!(
+            "updated strong_count: {count}, rc1: {rc1:?}",
+            rc1 = rc1,
+            count = Rc::strong_count(&rc1)
+          );
+        } else {
+          println!("cannot get mut reference.");
+          println!(
+            "strong_count: {count}, rc1: {rc1:?}",
+            rc1 = rc1,
+            count = Rc::strong_count(&rc1)
+          );
+        }
+      }
+    }
+    println!(
+      "strong_count: {count}, rc1: {rc1:?}",
+      rc1 = rc1,
+      count = Rc::strong_count(&rc1)
+    );
+
+    {
+      if let Some(person) = Rc::get_mut(&mut rc1) {
+        person.age += 1;
+        println!(
+          "updated strong_count: {count}, rc1: {rc1:?}",
+          rc1 = rc1,
+          count = Rc::strong_count(&rc1)
+        );
+      } else {
+        println!("cannot get mut reference.");
+        println!(
+          "strong_count: {count}, rc1: {rc1:?}",
+          rc1 = rc1,
+          count = Rc::strong_count(&rc1)
+        );
+      }
+    }
+    {
+      let rc3 = Rc::downgrade(&rc1);
+      println!(
+        "strong_count: {count}, weak_count: {weak_count}, rc1: {rc1:?}, rc3: {rc3:?}",
+        rc1 = rc1,
+        rc3 = rc3,
+        count = Rc::strong_count(&rc1),
+        weak_count = Rc::weak_count(&rc1)
+      );
+
+      if let Some(upgraded) = rc3.upgrade() {
+        println!(
+          "strong_count: {count}, weak_count: {weak_count}, rc1: {rc1:?}, rc3: {rc3:?}, upgraded: {upgraded:?}",
+          rc1 = rc1,
+          rc3 = rc3,
+          upgraded = upgraded,
+          count = Rc::strong_count(&rc1),
+          weak_count = Rc::weak_count(&rc1)
+        );
+      } else {
+        println!("cannot upgrade");
+      }
+
+      std::mem::drop(rc1);
+
+      if let Some(weak) = rc3.upgrade() {
+        println!(
+          "rc3: {rc3:?}, weak: {weak:?}",
+          rc3 = rc3,
+          weak = weak,
+        );
+      } else {
+        println!("cannot upgrade. rc3: {:?}, upgrade(): {:?}", rc3, rc3.upgrade());
+      }
     }
   }
 }
