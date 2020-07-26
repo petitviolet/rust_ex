@@ -1,145 +1,145 @@
 #[derive(Debug)]
 pub struct Myvec<T> {
-  items: Box<[T]>,
-  pub len: usize,
+    items: Box<[T]>,
+    pub len: usize,
 }
 
 impl<T: Default> Myvec<T> {
-  pub fn new(capacity: usize) -> Self {
-    Self {
-      items: Self::allocate_in_heap(capacity),
-      len: 0,
+    pub fn new(capacity: usize) -> Self {
+        Self {
+            items: Self::allocate_in_heap(capacity),
+            len: 0,
+        }
     }
-  }
-  pub fn empty() -> Self {
-    Self::new(0)
-  }
+    pub fn empty() -> Self {
+        Self::new(0)
+    }
 
-  fn allocate_in_heap(capacity: usize) -> Box<[T]> {
-    std::iter::repeat_with(Default::default)
-      .take(capacity)
-      .collect::<Vec<T>>()
-      .into_boxed_slice()
-  }
+    fn allocate_in_heap(capacity: usize) -> Box<[T]> {
+        std::iter::repeat_with(Default::default)
+            .take(capacity)
+            .collect::<Vec<T>>()
+            .into_boxed_slice()
+    }
 
-  pub fn capacity(&self) -> usize {
-    self.items.len()
-  }
+    pub fn capacity(&self) -> usize {
+        self.items.len()
+    }
 
-  pub fn append(&mut self, item: T) -> () {
-    if self.len >= self.capacity() {
-      self.ensure_capacity();
+    pub fn append(&mut self, item: T) -> () {
+        if self.len >= self.capacity() {
+            self.ensure_capacity();
+        }
+        self.items[self.len] = item;
+        self.len += 1;
     }
-    self.items[self.len] = item;
-    self.len += 1;
-  }
 
-  fn ensure_capacity(&mut self) -> () {
-    if self.capacity() == 0 {
-      self.items = Self::allocate_in_heap(1);
-    } else {
-      let new_items = Self::allocate_in_heap(self.capacity() * 2);
-      // I think this is not thread-safe
-      let old_items = std::mem::replace(&mut self.items, new_items);
-      // into_vec/into_vec convert type without copying data
-      for (i, item) in old_items.into_vec().into_iter().enumerate() {
-        self.items[i] = item;
-      }
+    fn ensure_capacity(&mut self) -> () {
+        if self.capacity() == 0 {
+            self.items = Self::allocate_in_heap(1);
+        } else {
+            let new_items = Self::allocate_in_heap(self.capacity() * 2);
+            // I think this is not thread-safe
+            let old_items = std::mem::replace(&mut self.items, new_items);
+            // into_vec/into_vec convert type without copying data
+            for (i, item) in old_items.into_vec().into_iter().enumerate() {
+                self.items[i] = item;
+            }
+        }
     }
-  }
 
-  pub fn fetch(&self, index: usize) -> Option<&T> {
-    if index < self.len {
-      Some(&self.items[index])
-    } else {
-      None
+    pub fn fetch(&self, index: usize) -> Option<&T> {
+        if index < self.len {
+            Some(&self.items[index])
+        } else {
+            None
+        }
     }
-  }
-  pub fn fetch_or<'a>(&'a self, index: usize, default: &'a T) -> &'a T {
-    match self.fetch(index) {
-      Some(item) => item,
-      None => default,
+    pub fn fetch_or<'a>(&'a self, index: usize, default: &'a T) -> &'a T {
+        match self.fetch(index) {
+            Some(item) => item,
+            None => default,
+        }
     }
-  }
-  pub fn pop(&mut self) -> Option<T> {
-    if self.len == 0 {
-      None
-    } else {
-      let last_item = std::mem::replace(&mut self.items[self.len - 1], Default::default());
-      self.len -= 1;
-      Some(last_item)
+    pub fn pop(&mut self) -> Option<T> {
+        if self.len == 0 {
+            None
+        } else {
+            let last_item = std::mem::replace(&mut self.items[self.len - 1], Default::default());
+            self.len -= 1;
+            Some(last_item)
+        }
     }
-  }
 
-  pub fn iter<'a>(&'a self) -> MyIter<'a, T> {
-    MyIter {
-      items: &self.items,
-      size: self.len,
-      next: 0,
+    pub fn iter<'a>(&'a self) -> MyIter<'a, T> {
+        MyIter {
+            items: &self.items,
+            size: self.len,
+            next: 0,
+        }
     }
-  }
 }
 
 pub struct MyIter<'a, T> {
-  items: &'a Box<[T]>,
-  size: usize,
-  next: usize,
+    items: &'a Box<[T]>,
+    size: usize,
+    next: usize,
 }
 impl<'a, T> Iterator for MyIter<'a, T> {
-  type Item = &'a T;
+    type Item = &'a T;
 
-  fn next(&mut self) -> std::option::Option<Self::Item> {
-    if self.next >= self.size {
-      None
-    } else {
-      let item = Some(&self.items[self.next]);
-      self.next += 1;
-      item
+    fn next(&mut self) -> std::option::Option<Self::Item> {
+        if self.next >= self.size {
+            None
+        } else {
+            let item = Some(&self.items[self.next]);
+            self.next += 1;
+            item
+        }
     }
-  }
 }
 // enable to use `for` expression on Myvec
 impl<'a, T: Default> IntoIterator for &'a Myvec<T> {
-  type Item = &'a T;
-  type IntoIter = MyIter<'a, T>;
+    type Item = &'a T;
+    type IntoIter = MyIter<'a, T>;
 
-  fn into_iter(self) -> Self::IntoIter {
-    self.iter()
-  }
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
 }
 
 pub fn play_myvec() -> () {
-  let mut myvec: Myvec<i32> = Myvec::empty();
-  println!("myvec: {:?}", myvec);
-  let myvec2 = myvec.append(10);
-  println!("myvec: {:?}", myvec);
-  println!("myvec2: {:?}", myvec2);
-  (0..5).for_each(|i| myvec.append(i));
-  println!("myvecs: {:?}", myvec);
+    let mut myvec: Myvec<i32> = Myvec::empty();
+    println!("myvec: {:?}", myvec);
+    let myvec2 = myvec.append(10);
+    println!("myvec: {:?}", myvec);
+    println!("myvec2: {:?}", myvec2);
+    (0..5).for_each(|i| myvec.append(i));
+    println!("myvecs: {:?}", myvec);
 
-  let mut appended = (0..5).fold(Myvec::empty(), |mut acc, i| {
-    acc.append(format!("item-{}", i));
-    acc
-  });
-  println!("appended: {:?}", appended);
-  let item_2 = appended.fetch(2);
-  println!("appended.fetch(2): {:?}", item_2);
-  // appended.append("item-new".to_string()); // mutable borrow occurs here
-  println!("appended.fetch(2): {:?}", item_2);
+    let mut appended = (0..5).fold(Myvec::empty(), |mut acc, i| {
+        acc.append(format!("item-{}", i));
+        acc
+    });
+    println!("appended: {:?}", appended);
+    let item_2 = appended.fetch(2);
+    println!("appended.fetch(2): {:?}", item_2);
+    // appended.append("item-new".to_string()); // mutable borrow occurs here
+    println!("appended.fetch(2): {:?}", item_2);
 
-  println!("before pop: {:?}", appended);
-  println!("pop: {:?}", appended.pop());
-  println!("after pop: {:?}", appended);
-  println!(
-    "appended.fetch_or(10, \"foo\"): {:?}",
-    appended.fetch_or(10, &"foo".to_string())
-  );
-  // zipWithIndex
-  (0..).zip(appended.iter()).for_each(|(idx, item)| {
-    println!("idx: {}, item: {:?}", idx, item);
-  });
-  // use `IntoIter` internally
-  for item in &appended {
-    println!("item: {:?}", item);
-  }
+    println!("before pop: {:?}", appended);
+    println!("pop: {:?}", appended.pop());
+    println!("after pop: {:?}", appended);
+    println!(
+        "appended.fetch_or(10, \"foo\"): {:?}",
+        appended.fetch_or(10, &"foo".to_string())
+    );
+    // zipWithIndex
+    (0..).zip(appended.iter()).for_each(|(idx, item)| {
+        println!("idx: {}, item: {:?}", idx, item);
+    });
+    // use `IntoIter` internally
+    for item in &appended {
+        println!("item: {:?}", item);
+    }
 }
