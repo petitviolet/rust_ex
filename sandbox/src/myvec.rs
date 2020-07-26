@@ -22,7 +22,7 @@ impl<T: Default> Myvec<T> {
       .into_boxed_slice()
   }
 
-  pub fn capacity(&self) -> usize { 
+  pub fn capacity(&self) -> usize {
     self.items.len()
   }
 
@@ -34,7 +34,7 @@ impl<T: Default> Myvec<T> {
     self.len += 1;
   }
 
-  fn ensure_capacity(&mut self) -> () { 
+  fn ensure_capacity(&mut self) -> () {
     if self.capacity() == 0 {
       self.items = Self::allocate_in_heap(1);
     } else {
@@ -61,13 +61,50 @@ impl<T: Default> Myvec<T> {
       None => default,
     }
   }
-  pub fn pop(&mut self) -> Option<T> { 
-    if self.len == 0 { None }
-    else {
+  pub fn pop(&mut self) -> Option<T> {
+    if self.len == 0 {
+      None
+    } else {
       let last_item = std::mem::replace(&mut self.items[self.len - 1], Default::default());
       self.len -= 1;
       Some(last_item)
     }
+  }
+
+  pub fn iter<'a>(&'a self) -> MyIter<'a, T> {
+    MyIter {
+      items: &self.items,
+      size: self.len,
+      next: 0,
+    }
+  }
+}
+
+pub struct MyIter<'a, T> {
+  items: &'a Box<[T]>,
+  size: usize,
+  next: usize,
+}
+impl<'a, T> Iterator for MyIter<'a, T> {
+  type Item = &'a T;
+
+  fn next(&mut self) -> std::option::Option<Self::Item> {
+    if self.next >= self.size {
+      None
+    } else {
+      let item = Some(&self.items[self.next]);
+      self.next += 1;
+      item
+    }
+  }
+}
+// enable to use `for` expression on Myvec
+impl<'a, T: Default> IntoIterator for &'a Myvec<T> {
+  type Item = &'a T;
+  type IntoIter = MyIter<'a, T>;
+
+  fn into_iter(self) -> Self::IntoIter {
+    self.iter()
   }
 }
 
@@ -97,4 +134,12 @@ pub fn play_myvec() -> () {
     "appended.fetch_or(10, \"foo\"): {:?}",
     appended.fetch_or(10, &"foo".to_string())
   );
+  // zipWithIndex
+  (0..).zip(appended.iter()).for_each(|(idx, item)| {
+    println!("idx: {}, item: {:?}", idx, item);
+  });
+  // use `IntoIter` internally
+  for item in &appended {
+    println!("item: {:?}", item);
+  }
 }
