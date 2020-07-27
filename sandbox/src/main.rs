@@ -1,4 +1,5 @@
 mod myvec;
+mod ex_trait;
 
 fn main() {
     println!("{}", bang("Hello, world"));
@@ -28,6 +29,7 @@ fn main() {
     rc::f();
     refcell::f();
     arc::f();
+    ex_trait::f();
 }
 
 use rand::Rng;
