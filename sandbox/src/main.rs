@@ -30,6 +30,7 @@ fn main() {
     refcell::f();
     arc::f();
     ex_trait::f();
+    ex_trait::g();
 }
 
 use rand::Rng;

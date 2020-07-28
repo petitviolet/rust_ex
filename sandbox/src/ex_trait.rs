@@ -65,3 +65,22 @@ pub fn f() -> () {
   let point = (2.0, 2.0);
   print_point(&point);
 }
+
+trait Animal {
+  fn berk(&self) -> ();
+}
+struct Dog { name: &'static str, }
+impl Animal for Dog {
+  fn berk(&self) -> () { println!("Dog({})!!!", self.name); }
+}
+struct Cat { name: &'static str, }
+impl Animal for Cat {
+  fn berk(&self) -> () { println!("Cat({})!!!", self.name); }
+}
+fn berk(animal: &dyn Animal) -> () {
+  animal.berk();
+}
+pub fn g() -> () {
+  berk(&Dog { name: "pochi" });
+  berk(&Cat { name: "tama" });
+}
