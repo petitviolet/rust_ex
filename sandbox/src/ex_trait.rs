@@ -90,10 +90,15 @@ impl Animal for Cat {
         println!("Cat({})!!!", self.name);
     }
 }
-fn berk(animal: &dyn Animal) -> () {
+fn berk_dyn(animal: &dyn Animal) -> () {
+    animal.berk();
+}
+fn berk_impl(animal: impl Animal) -> () {
     animal.berk();
 }
 pub fn g() -> () {
-    berk(&Dog { name: "pochi" });
-    berk(&Cat { name: "tama" });
+    berk_dyn(&Dog { name: "pochi" });
+    berk_dyn(&Cat { name: "tama" });
+    berk_impl(Dog { name: "pochi" });
+    berk_impl(Cat { name: "tama" });
 }
