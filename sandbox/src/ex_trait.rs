@@ -60,14 +60,13 @@ impl Coordinates for (f64, f64) {
 }
 
 impl Add<CartesianCoord> for CartesianCoord {
-  type Output = CartesianCoord;
-  fn add(self, rhs: CartesianCoord) -> Self::Output {
-    CartesianCoord {
-      x: self.x + rhs.x,
-      y: self.y + rhs.y,
+    type Output = CartesianCoord;
+    fn add(self, rhs: CartesianCoord) -> Self::Output {
+        CartesianCoord {
+            x: self.x + rhs.x,
+            y: self.y + rhs.y,
+        }
     }
-  }
-  
 }
 
 fn print_point<C: Coordinates + std::fmt::Debug>(c: &C) -> () {
@@ -114,16 +113,25 @@ fn berk_impl(animal: impl Animal) -> () {
     animal.berk();
 }
 fn born(name: &'static str) -> impl Animal + std::fmt::Debug {
-  Dog { name: name, color: "red", }
+    Dog {
+        name: name,
+        color: "red",
+    }
 }
 fn print_type_of<T>(_: &T) {
-  println!("{}", std::any::type_name::<T>())
+    println!("{}", std::any::type_name::<T>())
 }
 
 pub fn g() -> () {
-    berk_dyn(&Dog { name: "pochi", color: "red" });
+    berk_dyn(&Dog {
+        name: "pochi",
+        color: "red",
+    });
     berk_dyn(&Cat { name: "tama" });
-    berk_impl(Dog { name: "pochi" , color: "red" });
+    berk_impl(Dog {
+        name: "pochi",
+        color: "red",
+    });
     berk_impl(Cat { name: "tama" });
     let animal = born("john");
     print_type_of(&animal);
