@@ -1,3 +1,5 @@
+use std::ops::Add;
+
 #[derive(Debug)]
 struct CartesianCoord {
     x: f64,
@@ -57,6 +59,17 @@ impl Coordinates for (f64, f64) {
     }
 }
 
+impl Add<CartesianCoord> for CartesianCoord {
+  type Output = CartesianCoord;
+  fn add(self, rhs: CartesianCoord) -> Self::Output {
+    CartesianCoord {
+      x: self.x + rhs.x,
+      y: self.y + rhs.y,
+    }
+  }
+  
+}
+
 fn print_point<C: Coordinates + std::fmt::Debug>(c: &C) -> () {
     println!(
         "point: {:?}, cartesian: {:?}, polar: {:?}",
@@ -69,6 +82,7 @@ fn print_point<C: Coordinates + std::fmt::Debug>(c: &C) -> () {
 pub fn f() -> () {
     let point = (2.0, 2.0);
     print_point(&point);
+    print_point(&((1.0, 2.0).to_cartesian() + (10.0, 20.0).to_cartesian()));
 }
 
 trait Animal {
