@@ -74,14 +74,17 @@ pub fn f() -> () {
 trait Animal {
     fn berk(&self) -> ();
 }
+#[derive(Debug)]
 struct Dog {
     name: &'static str,
+    color: &'static str,
 }
 impl Animal for Dog {
     fn berk(&self) -> () {
         println!("Dog({})!!!", self.name);
     }
 }
+#[derive(Debug)]
 struct Cat {
     name: &'static str,
 }
@@ -96,9 +99,21 @@ fn berk_dyn(animal: &dyn Animal) -> () {
 fn berk_impl(animal: impl Animal) -> () {
     animal.berk();
 }
+fn born(name: &'static str) -> impl Animal + std::fmt::Debug {
+  Dog { name: name, color: "red", }
+}
+fn print_type_of<T>(_: &T) {
+  println!("{}", std::any::type_name::<T>())
+}
+
 pub fn g() -> () {
-    berk_dyn(&Dog { name: "pochi" });
+    berk_dyn(&Dog { name: "pochi", color: "red" });
     berk_dyn(&Cat { name: "tama" });
-    berk_impl(Dog { name: "pochi" });
+    berk_impl(Dog { name: "pochi" , color: "red" });
     berk_impl(Cat { name: "tama" });
+    let animal = born("john");
+    print_type_of(&animal);
+    println!("animal: {:?}", animal);
+    berk_dyn(&animal);
+    berk_impl(animal);
 }
