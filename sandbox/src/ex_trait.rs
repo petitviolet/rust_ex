@@ -89,8 +89,16 @@ trait Animal {
 }
 #[derive(Debug)]
 struct Dog {
-    name: &'static str,
-    color: &'static str,
+    name: String,
+    color: String,
+}
+impl Dog {
+    pub fn new(name: impl Into<String>, color: impl Into<String>) -> Dog {
+        Dog {
+            name: name.into(),
+            color: color.into(),
+        }
+    }
 }
 impl Animal for Dog {
     fn berk(&self) -> () {
@@ -99,7 +107,12 @@ impl Animal for Dog {
 }
 #[derive(Debug)]
 struct Cat {
-    name: &'static str,
+    name: String,
+}
+impl Cat {
+    pub fn new(name: impl Into<String>) -> Cat {
+        Cat { name: name.into() }
+    }
 }
 impl Animal for Cat {
     fn berk(&self) -> () {
@@ -112,27 +125,18 @@ fn berk_dyn(animal: &dyn Animal) -> () {
 fn berk_impl(animal: impl Animal) -> () {
     animal.berk();
 }
-fn born(name: &'static str) -> impl Animal + std::fmt::Debug {
-    Dog {
-        name: name,
-        color: "red",
-    }
+fn born(name: impl Into<String>) -> impl Animal + std::fmt::Debug {
+    Dog::new(name, "red")
 }
 fn print_type_of<T>(_: &T) {
     println!("{}", std::any::type_name::<T>())
 }
 
 pub fn g() -> () {
-    berk_dyn(&Dog {
-        name: "pochi",
-        color: "red",
-    });
-    berk_dyn(&Cat { name: "tama" });
-    berk_impl(Dog {
-        name: "pochi",
-        color: "red",
-    });
-    berk_impl(Cat { name: "tama" });
+    berk_dyn(&Dog::new("pochi", "red"));
+    berk_dyn(&Cat::new("tama"));
+    berk_impl(Dog::new("pochi", "red"));
+    berk_impl(Cat::new("tama"));
     let animal = born("john");
     print_type_of(&animal);
     println!("animal: {:?}", animal);
