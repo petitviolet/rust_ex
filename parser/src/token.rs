@@ -23,7 +23,7 @@ pub struct Annotation<T> {
   loc: Loc,
 }
 impl<T> Annotation<T> {
-  fn new(value: T, loc: Loc) -> Self {
+  pub fn new(value: T, loc: Loc) -> Self {
     Self { value, loc }
   }
 }
