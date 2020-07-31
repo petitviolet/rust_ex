@@ -84,13 +84,29 @@ pub enum ParseError {
     RedundantExpression(Token),
     EOF,
 }
+impl ParseError {
+  pub fn token(&self) -> Option<&Token> {
+    match self {
+      ParseError::UnexpectedToken(token) => Some(token),
+      ParseError::NotExpression(token) => Some(token),
+      ParseError::NotOperator(token) => Some(token),
+      ParseError::UnclosedOpenParen(token) => Some(token),
+      ParseError::RedundantExpression(token) => Some(token),
+      ParseError::EOF => None,
+    }
+  }
+}
 
 pub struct Tokens(Vec<Token>);
 
 pub type ParseResult = Result<Ast, ParseError>;
 
+pub fn parse(tokens: Vec<Token>) -> ParseResult {
+  Tokens::parse(tokens)
+}
+
 impl Tokens {
-    pub fn parse(tokens: Vec<Token>) -> ParseResult {
+    fn parse(tokens: Vec<Token>) -> ParseResult {
         let mut tokens = tokens.into_iter().peekable();
         let result = Self::parse_expr(&mut tokens);
         match tokens.next() {
