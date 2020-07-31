@@ -171,29 +171,6 @@ pub fn lex(input: &str) -> Result<Vec<Token>, LexError> {
     Ok(tokens)
 }
 
-pub fn lex_interactive() -> () {
-    use std::io::{stdin, stdout, BufRead, BufReader, Write};
-    let prompt = |s: &str| {
-        let stdout = stdout();
-        let mut stdout = stdout.lock();
-        stdout.write(s.as_bytes())?;
-        stdout.flush()
-    };
-    let stdin = stdin();
-    // let mut stdin = stdin.lock();
-    let stdin = BufReader::new(stdin.lock());
-    let mut lines = stdin.lines();
-    loop {
-        prompt("> ").unwrap();
-        if let Some(Ok(line)) = lines.next() {
-            let token = lex(&line);
-            println!("{:?}", token);
-        } else {
-            break;
-        }
-    }
-}
-
 #[test]
 fn test_lexer() {
     assert_eq!(
