@@ -85,16 +85,16 @@ pub enum ParseError {
     EOF,
 }
 impl ParseError {
-  pub fn token(&self) -> Option<&Token> {
-    match self {
-      ParseError::UnexpectedToken(token) => Some(token),
-      ParseError::NotExpression(token) => Some(token),
-      ParseError::NotOperator(token) => Some(token),
-      ParseError::UnclosedOpenParen(token) => Some(token),
-      ParseError::RedundantExpression(token) => Some(token),
-      ParseError::EOF => None,
+    pub fn token(&self) -> Option<&Token> {
+        match self {
+            ParseError::UnexpectedToken(token) => Some(token),
+            ParseError::NotExpression(token) => Some(token),
+            ParseError::NotOperator(token) => Some(token),
+            ParseError::UnclosedOpenParen(token) => Some(token),
+            ParseError::RedundantExpression(token) => Some(token),
+            ParseError::EOF => None,
+        }
     }
-  }
 }
 
 pub struct Tokens(Vec<Token>);
@@ -102,7 +102,7 @@ pub struct Tokens(Vec<Token>);
 pub type ParseResult = Result<Ast, ParseError>;
 
 pub fn parse(tokens: Vec<Token>) -> ParseResult {
-  Tokens::parse(tokens)
+    Tokens::parse(tokens)
 }
 
 impl Tokens {
@@ -214,23 +214,20 @@ impl Tokens {
     where
         T: Iterator<Item = Token>,
     {
-      tokens.next()
+        tokens
+            .next()
             .ok_or(ParseError::EOF)
-            .and_then(|token| {
-              match token.value {
-                TokenKind::Number(num) => {
-                  Ok(Ast::number(num, token.loc))
-                },
+            .and_then(|token| match token.value {
+                TokenKind::Number(num) => Ok(Ast::number(num, token.loc)),
                 TokenKind::LParen => {
-                  let add = Self::parse_add(tokens)?;
-                  match tokens.next().map(|token| token.value) {
-                    Some(TokenKind::RParen) => Ok(add),
-                    Some(_) => Err(ParseError::RedundantExpression(token)),
-                    _ => Err(ParseError::UnclosedOpenParen(token))
-                  }
-                },
+                    let add = Self::parse_add(tokens)?;
+                    match tokens.next().map(|token| token.value) {
+                        Some(TokenKind::RParen) => Ok(add),
+                        Some(_) => Err(ParseError::RedundantExpression(token)),
+                        _ => Err(ParseError::UnclosedOpenParen(token)),
+                    }
+                }
                 _ => Err(ParseError::UnexpectedToken(token)),
-              }
             })
     }
 }
