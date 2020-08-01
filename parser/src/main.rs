@@ -36,14 +36,13 @@ pub fn parse_interactive() -> () {
                   println!("result: {:?}", interpreter::eval(&ast))
                 },
                 Err(errors::CompileError::Lexer(lex_error)) => {
-                    println!("Lex error({:?})", lex_error);
                     println!("{}", line);
                     let token::Loc { start, end } = lex_error.loc;
                     println!(
-                        "{}{}{:?}",
+                        "{}{}{}",
                         String::from(" ").repeat(start),
                         String::from("^").repeat(end - start),
-                        lex_error.value
+                        lex_error
                     );
                 }
                 Err(errors::CompileError::Parser(parse_error)) => {
@@ -59,10 +58,9 @@ pub fn parse_interactive() -> () {
                             end = line.len();
                         }
                     }
-                    println!("Parse error({:?})", parse_error);
                     println!("{}", line);
                     println!(
-                        "{}{} {:?}",
+                        "{}{} {}",
                         String::from(" ").repeat(start),
                         String::from("^").repeat(end - start),
                         parse_error
