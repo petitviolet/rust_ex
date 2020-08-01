@@ -1,5 +1,6 @@
 mod ast;
 mod errors;
+mod interpreter;
 mod token;
 fn main() {
     parse_interactive();
@@ -30,7 +31,10 @@ pub fn parse_interactive() -> () {
         prompt("> ").unwrap();
         if let Some(Ok(line)) = lines.next() {
             match line.parse::<ast::Ast>() {
-                Ok(ast) => println!("{:?}", ast),
+                Ok(ast) => {
+                  println!("{:?}", ast);
+                  println!("result: {:?}", interpreter::eval(&ast))
+                },
                 Err(errors::CompileError::Lexer(lex_error)) => {
                     println!("Lex error({:?})", lex_error);
                     println!("{}", line);
@@ -64,6 +68,7 @@ pub fn parse_interactive() -> () {
                         parse_error
                     );
                 }
+                _ => unreachable!(),
             }
         } else {
             break;
