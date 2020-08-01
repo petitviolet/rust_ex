@@ -32,9 +32,9 @@ pub fn parse_interactive() -> () {
         if let Some(Ok(line)) = lines.next() {
             match line.parse::<ast::Ast>() {
                 Ok(ast) => {
-                  println!("{:?}", ast);
-                  println!("result: {:?}", interpreter::eval(&ast))
-                },
+                    println!("{:?}", ast);
+                    println!("result: {:?}", interpreter::eval(&ast))
+                }
                 Err(errors::CompileError::Lexer(lex_error)) => {
                     println!("{}", line);
                     let token::Loc { start, end } = lex_error.loc;

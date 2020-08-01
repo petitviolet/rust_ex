@@ -1,5 +1,5 @@
 use crate::{
-    ast::{Ast, AstKind, BinOperator, UniOperator, UniOperatorKind, BinOperatorKind},
+    ast::{Ast, AstKind, BinOperator, BinOperatorKind, UniOperator, UniOperatorKind},
     token::Annotation,
 };
 
@@ -8,11 +8,13 @@ pub enum InterpreterErrorKind {
     DivisionByZero,
 }
 pub type InterpreterError = Annotation<InterpreterErrorKind>;
-pub struct Interpreter<'a> { ast: &'a Ast }
+pub struct Interpreter<'a> {
+    ast: &'a Ast,
+}
 type InterpreterResult = Result<i64, InterpreterError>;
 impl<'a> Interpreter<'a> {
     pub fn new(ast: &'a Ast) -> Interpreter<'a> {
-      Self { ast }
+        Self { ast }
     }
 
     pub fn eval(&self) -> Result<i64, InterpreterError> {
@@ -26,7 +28,7 @@ impl<'a> Interpreter<'a> {
                 let left = Interpreter::new(&lhs).eval()?;
                 let right = Interpreter::new(&rhs).eval()?;
                 self.eval_bin_operator(&operator, left, right)
-                .map_err(|error_kind| InterpreterError::new(error_kind, self.ast.loc.clone()))
+                    .map_err(|error_kind| InterpreterError::new(error_kind, self.ast.loc.clone()))
             }
         }
     }
@@ -37,22 +39,27 @@ impl<'a> Interpreter<'a> {
             UniOperatorKind::Minus => -num,
         }
     }
-    fn eval_bin_operator(&self, binop: &BinOperator, left: i64, right: i64) -> Result<i64, InterpreterErrorKind> {
+    fn eval_bin_operator(
+        &self,
+        binop: &BinOperator,
+        left: i64,
+        right: i64,
+    ) -> Result<i64, InterpreterErrorKind> {
         match binop.value {
             BinOperatorKind::Add => Ok(left + right),
             BinOperatorKind::Sub => Ok(left - right),
             BinOperatorKind::Mul => Ok(left * right),
             BinOperatorKind::Div => {
-              if right == 0 {
-                Err(InterpreterErrorKind::DivisionByZero)
-              } else {
-                Ok(left / right)
-              }
+                if right == 0 {
+                    Err(InterpreterErrorKind::DivisionByZero)
+                } else {
+                    Ok(left / right)
+                }
             }
         }
     }
 }
 
-pub fn eval(ast: &Ast) -> InterpreterResult { 
-  Interpreter::new(ast).eval()
+pub fn eval(ast: &Ast) -> InterpreterResult {
+    Interpreter::new(ast).eval()
 }
